@@ -4,27 +4,32 @@ import it.polimi.deib.ppap.node.services.ServiceRequest;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.Optional;
+import java.util.concurrent.Executor;
+
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class DynamicThreadPool  {
+public class DynamicThreadPool implements Executor, TaskListener {
 
-    private ExecutorService printExecutor = Executors.newSingleThreadExecutor();
-    protected LinkedBlockingQueue<ServiceRequest> queue = new LinkedBlockingQueue<>();
+    private Optional<TaskListener> listener;
+    protected LinkedBlockingQueue<Runnable> queue = new LinkedBlockingQueue<>();
     private List<Worker> workers = new ArrayList<>();
     private int size;
     private final int maxSize;
 
     public DynamicThreadPool(int startSize, int maxSize){
         this.maxSize = maxSize;
-
+        this.listener = Optional.empty();
         for (int i = 1; i <= maxSize; i++){
             Worker worker = new Worker(String.valueOf(i), this);
             workers.add(worker);
         }
 
         setSize(startSize);
+    }
+
+    public void setTaskListener(TaskListener listener){
+        this.listener = Optional.of(listener);
     }
 
     public void start(){
@@ -37,7 +42,6 @@ public class DynamicThreadPool  {
             w.setAvailable(false);
         }
         shutdown();
-
     }
 
     public void shutdown(){
@@ -52,10 +56,6 @@ public class DynamicThreadPool  {
                 }
             }
         }
-
-        printExecutor.shutdown();
-
-
     }
 
     public synchronized void setSize(int size){
@@ -77,28 +77,18 @@ public class DynamicThreadPool  {
         return size;
     }
 
-    public synchronized void execute(ServiceRequest request){
-        request.setStart();
-        queue.offer(request);
+    public synchronized void execute(Runnable task){
+        queue.offer(task);
     }
 
-
-    public synchronized void threadEnded(final ServiceRequest request) {
-        printExecutor.execute(() -> System.out.println("Executed request "+request.getName()+
-                " in "+request.getResponseTime()+" queue "+request.getQueueTime()));
+    @Override
+    public void taskStarted(Runnable task) {
+        listener.ifPresent((l)-> l.taskStarted(task));
     }
 
-    public static void main(String[] args) throws InterruptedException {
-
-        DynamicThreadPool pool = new DynamicThreadPool(16, 16);
-
-        pool.start();
-
-        for (int i = 1; i <= 16*20; i++){
-            pool.execute(new ServiceRequest(String.valueOf(i), 50));
-        }
-
-        pool.shutdown();
+    public synchronized void taskExecuted(final Runnable task) {
+        listener.ifPresent((l)-> l.taskExecuted(task));
     }
+
 
 }

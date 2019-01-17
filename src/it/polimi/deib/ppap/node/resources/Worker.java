@@ -31,25 +31,17 @@ public class Worker extends Thread {
         super.run();
 
         while (alive || available){
-            boolean _available = false;
-
-            synchronized (this) {
-                if (available) {
-                    _available = true;
-                }
-            }
-
             try {
-                if (_available){
-                    ServiceRequest request = pool.queue.poll(500, TimeUnit.MILLISECONDS);
-                    if(request == null) {
+                if (available){
+                    Runnable task = pool.queue.poll(500, TimeUnit.MILLISECONDS);
+                    if(task == null) {
                         if (!alive)
                             available = false;
                         continue;
                     }
-                    request.run();
-                    request.setEnd();
-                    pool.threadEnded(request);
+                    pool.taskStarted(task);
+                    task.run();
+                    pool.taskExecuted(task);
                 }
                 else {
                     System.out.println("Waiting...");
@@ -64,6 +56,5 @@ public class Worker extends Thread {
         }
 
     }
-
 
 }

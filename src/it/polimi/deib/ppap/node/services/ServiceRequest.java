@@ -3,6 +3,7 @@ package it.polimi.deib.ppap.node.services;
 public class ServiceRequest implements Runnable {
 
     private long start;
+    private long startService;
     private long end;
     private String name;
     private long serviceAndNetworkTime;
@@ -26,8 +27,21 @@ public class ServiceRequest implements Runnable {
         start = System.currentTimeMillis();
     }
 
+    public void setStartService(){
+        startService = System.currentTimeMillis();
+    }
+
+
     public void setEnd(){
         end = System.currentTimeMillis();
+    }
+
+    public long getNominalServiceTime(){
+        return serviceAndNetworkTime;
+    }
+
+    public long getServiceTime(){
+        return end-startService;
     }
 
     public long getResponseTime(){
@@ -35,7 +49,7 @@ public class ServiceRequest implements Runnable {
     }
 
     public long getQueueTime(){
-        return getResponseTime()-serviceAndNetworkTime;
+        return startService-start;
     }
 
     public String getName(){
