@@ -44,11 +44,11 @@ public class Worker extends Thread {
                     pool.taskExecuted(task);
                 }
                 else {
-                    System.out.println("Waiting...");
+                    //System.out.println("waiting...");
                     synchronized (this) {
                         wait();
                     }
-                    System.out.println("notified...");
+                    //System.out.println("...notified");
                 }
             } catch (InterruptedException e) {
                         e.printStackTrace();

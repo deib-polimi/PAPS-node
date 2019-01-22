@@ -5,11 +5,11 @@ public class ServiceRequest implements Runnable {
     private long start;
     private long startService;
     private long end;
-    private String name;
+    private Service service;
     private long serviceAndNetworkTime;
 
-    public ServiceRequest(String name, long serviceAndNetworkTime){
-        this.name = name;
+    public ServiceRequest(Service service, long serviceAndNetworkTime){
+        this.service = service;
         this.serviceAndNetworkTime = serviceAndNetworkTime;
     }
 
@@ -52,7 +52,7 @@ public class ServiceRequest implements Runnable {
         return startService-start;
     }
 
-    public String getName(){
-        return name;
+    public Service getService(){
+        return service;
     }
 }
