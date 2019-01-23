@@ -119,8 +119,8 @@ public class NodeFacade {
 
         Service one = new Service("1", 128, 120);
         Service two = new Service("2", 256, 100);
-        one.setTargetAllocation(1);
-        two.setTargetAllocation(1);
+        one.setTargetAllocation(32);
+        two.setTargetAllocation(16);
         facade.addService(one);
         facade.addService(two);
         facade.start();
@@ -183,11 +183,23 @@ public class NodeFacade {
             for (int i = 0; i < num/3; i++) {
                 facade.execute(new ServiceRequest(service, (long) n.random()));
                 try {
-                    Thread.sleep((long) (n.random()*0.8));
+                    Thread.sleep((long) (n.random()*0.7));
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
+
+            System.out.println("PHASE 5: "+service);
+            // peak inter-arrival rate
+            for (int i = 0; i < num; i++) {
+                facade.execute(new ServiceRequest(service, (long) n.random()));
+                try {
+                    Thread.sleep((long) (n.random()*0.1));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
 
             System.out.println("END: "+service);
 

@@ -16,7 +16,7 @@ public class Planner
     private final float A2_NOM = 0.002f;
     private final float A3_NOM = 0.5658f;
     private final float SLA;
-    private final float P_NOM = 0.95f;
+    private final float P_NOM = 0.8f;
     private final float A;
 
     private float uiOld = 0.0f;
@@ -35,11 +35,11 @@ public class Planner
 
     public float nextResourceAllocation(MonitoringData data)
     {
+
         step++;
 
         req = (float) data.getRequests();
         float rt = data.getResponseTime();
-
         float e = SLA/1000 - rt/1000;
         ke = (A-1)/(P_NOM-1)*e;
         float ui = uiOld+(1-P_NOM)*ke;
@@ -47,7 +47,9 @@ public class Planner
 
         core = req*(ut-A1_NOM-1000.0f*A2_NOM)/(1000.0f*A3_NOM*(A1_NOM-ut));
 
-        float approxCore = Math.max(core, CORE_MIN);
+
+
+        float approxCore = Math.max(Math.abs(core), CORE_MIN);
 
         float approxUt = ((1000.0f*A2_NOM+A1_NOM)*req+1000.0f*A1_NOM*A3_NOM*approxCore)/(req+1000.0f*A3_NOM*approxCore);
 
