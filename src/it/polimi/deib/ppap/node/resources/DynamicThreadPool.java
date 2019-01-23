@@ -78,7 +78,13 @@ public class DynamicThreadPool implements Executor, TaskListener {
     }
 
     public synchronized void execute(Runnable task){
+        this.taskEnqueued(task);
         queue.offer(task);
+    }
+
+    @Override
+    public void taskEnqueued(Runnable task) {
+        listener.ifPresent((l)-> l.taskEnqueued(task));
     }
 
     @Override

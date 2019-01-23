@@ -38,12 +38,19 @@ public class ServiceExecutor implements TaskListener<ServiceRequest>  {
     }
 
     public void execute(ServiceRequest request) {
-        request.setStart();
         pool.execute(request);
     }
 
     public void setSize(int size){
         pool.setSize(size);
+    }
+
+    @Override
+    public void taskEnqueued(ServiceRequest task) {
+        task.setStart();
+        callbackExecutor.execute(() -> {
+            listener.taskEnqueued(task);
+        });
     }
 
     @Override

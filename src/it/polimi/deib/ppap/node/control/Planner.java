@@ -16,7 +16,7 @@ public class Planner
     private final float A2_NOM = 0.002f;
     private final float A3_NOM = 0.5658f;
     private final float SLA;
-    private final float P_NOM = 0.4f;
+    private final float P_NOM = 0.95f;
     private final float A;
 
     private float uiOld = 0.0f;

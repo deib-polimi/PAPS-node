@@ -114,7 +114,7 @@ public class NodeFacade {
 
     public static void main(String[] args) throws InterruptedException, IOException {
 
-        NodeFacade facade = new NodeFacade(8192, 10*1000, 0.5f);
+        NodeFacade facade = new NodeFacade(8192, 3000, 0.9f);
         facade.setLogger(Utils.getLogger("exp1.log"));
 
         Service one = new Service("1", 128, 120);
@@ -145,8 +145,9 @@ public class NodeFacade {
 
             NormalDistribution n = Utils.getNormalDistribution(service.getSLA()*0.8, service.getSLA()*0.8*0.1);
 
+            System.out.println("PHASE 1: "+service);
             // stable system at the beginning
-            for (int i = 0; i < 100; i++) {
+            for (int i = 0; i < 200; i++) {
                 facade.execute(new ServiceRequest(service, (long) n.random()));
                 try {
                     Thread.sleep((long) service.getSLA());
@@ -155,15 +156,46 @@ public class NodeFacade {
                 }
             }
 
-            for (int i = 0; i < num; i++) {
+            System.out.println("PHASE 2: "+service);
+            // decreasing inter-arrival rate
+            for (int i = 0; i < num/3; i++) {
                     facade.execute(new ServiceRequest(service, (long) n.random()));
                     try {
-                        Thread.sleep((long) n.random());
+                        Thread.sleep((long) (n.random()*0.8));
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
+
+            System.out.println("PHASE 3: "+service);
+            // peak inter-arrival rate
+            for (int i = 0; i < num/3; i++) {
+                facade.execute(new ServiceRequest(service, (long) n.random()));
+                try {
+                    Thread.sleep((long) (n.random()*0.3));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            System.out.println("PHASE 4: "+service);
+            // decreasing inter-arrival rate
+            for (int i = 0; i < num/3; i++) {
+                facade.execute(new ServiceRequest(service, (long) n.random()));
+                try {
+                    Thread.sleep((long) (n.random()*0.8));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            System.out.println("END: "+service);
+
             };
+
+
+
+
     }
 
 

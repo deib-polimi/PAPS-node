@@ -27,16 +27,24 @@ public class Monitor implements TaskListener<ServiceRequest> {
         return data.entrySet().stream().map((e) -> Map.entry(e.getKey(), e.getValue().read())).collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
     }
 
+
     @Override
-    public void taskStarted(ServiceRequest request) {
+    public void taskEnqueued(ServiceRequest request) {
         if (data.containsKey(request.getService()))
             data.get(request.getService()).addArrival(1);
     }
 
     @Override
+    public void taskStarted(ServiceRequest request) {
+
+    }
+
+    @Override
     public void taskExecuted(ServiceRequest request) {
-        if (data.containsKey(request.getService()))
+        if (data.containsKey(request.getService())) {
             data.get(request.getService()).addRT(request.getResponseTime());
+            data.get(request.getService()).addLeft(1);
+        }
     }
 
 
@@ -45,6 +53,7 @@ public class Monitor implements TaskListener<ServiceRequest> {
         private long rt = 0;
         private long rtCount = 0;
         private long arrival = 0;
+        private long left = 0;
 
         synchronized void addRT(long value) {
             rt += value;
@@ -53,6 +62,10 @@ public class Monitor implements TaskListener<ServiceRequest> {
 
         synchronized void addArrival(long value) {
             this.arrival += value;
+        }
+
+        synchronized void addLeft(long value) {
+            this.left += value;
         }
 
         synchronized MonitoringData read(){
@@ -72,8 +85,9 @@ public class Monitor implements TaskListener<ServiceRequest> {
 
         private void reset(){
             rt = 0;
-            arrival = 0;
             rtCount = 0;
+            arrival -= left;
+            left = 0;
         }
 
     }
