@@ -144,7 +144,18 @@ public class NodeFacade {
         return () -> {
 
             NormalDistribution n = Utils.getNormalDistribution(service.getSLA()*0.8, service.getSLA()*0.8*0.1);
-                for (int i = 0; i < num; i++) {
+
+            // stable system at the beginning
+            for (int i = 0; i < 100; i++) {
+                facade.execute(new ServiceRequest(service, (long) n.random()));
+                try {
+                    Thread.sleep((long) service.getSLA());
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            for (int i = 0; i < num; i++) {
                     facade.execute(new ServiceRequest(service, (long) n.random()));
                     try {
                         Thread.sleep((long) n.random());
