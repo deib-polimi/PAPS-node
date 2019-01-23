@@ -42,4 +42,9 @@ public class Service {
     public int hashCode() {
         return id.hashCode();
     }
+
+    @Override
+    public String toString(){
+        return "Service "+id;
+    }
 }

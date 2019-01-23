@@ -1,4 +1,4 @@
-package it.polimi.deib.ppap.node.workload;
+package it.polimi.deib.ppap.node.commons;
 
 import java.util.Random;
 
@@ -9,7 +9,7 @@ public class NormalDistribution {
 
     private Random r;
 
-    public NormalDistribution(double mean, double std){
+    protected NormalDistribution(double mean, double std){
         this.mean = mean;
         this.std = std;
         r = new Random(System.currentTimeMillis());
