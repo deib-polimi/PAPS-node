@@ -70,6 +70,11 @@ public class NodeFacade {
         services.remove(service);
     }
 
+    public void stop(){
+        timer.cancel();
+        loggerService.shutdownNow();
+    }
+
     public void execute(ServiceRequest request) {
         if (services.containsKey(request.getService()))
             this.services.get(request.getService()).execute(request);
