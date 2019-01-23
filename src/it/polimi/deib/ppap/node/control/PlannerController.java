@@ -58,7 +58,7 @@ public class PlannerController {
 
     private float heuristic(Service service, float request, float allocationsSum){
         float weight =  service.getMemory()*(request/allocationsSum + service.getTargetAllocation()/nodeMemory)/2;
-        return (float) Math.floor(nodeMemory*weight)/service.getMemory();
+        return (float) Math.floor(nodeMemory*weight/service.getMemory());
     }
 
 
