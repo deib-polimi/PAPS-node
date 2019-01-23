@@ -48,7 +48,7 @@ public class DynamicThreadPool implements Executor, TaskListener {
         for(Worker w: workers) {
             w.kill();
             synchronized (w) {
-                w.notify();
+                w.notifyAll();
                 try {
                     w.join();
                 } catch (InterruptedException e) {

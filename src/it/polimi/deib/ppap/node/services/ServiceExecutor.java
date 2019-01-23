@@ -12,7 +12,6 @@ public class ServiceExecutor implements TaskListener<ServiceRequest>  {
 
     private DynamicThreadPool pool;
     private ExecutorService callbackExecutor = Executors.newSingleThreadExecutor();
-    private ExecutorService printExecutor = Executors.newSingleThreadExecutor();
 
     private TaskListener listener;
 
@@ -30,14 +29,12 @@ public class ServiceExecutor implements TaskListener<ServiceRequest>  {
     public void shutdown(){
         pool.shutdown();
         callbackExecutor.shutdown();
-        printExecutor.shutdown();
 
     }
 
     public void shutdownNow(){
         pool.shutdownNow();
-        callbackExecutor.shutdown();
-        printExecutor.shutdown();
+        callbackExecutor.shutdownNow();
     }
 
     public void execute(ServiceRequest request) {
@@ -52,15 +49,18 @@ public class ServiceExecutor implements TaskListener<ServiceRequest>  {
     @Override
     public void taskStarted(ServiceRequest task) {
         task.setStartService();
-        listener.taskStarted(task);
+        callbackExecutor.execute(() -> {
+            listener.taskStarted(task);
+        });
 
     }
 
     @Override
     public void taskExecuted(ServiceRequest task) {
         task.setEnd();
-        listener.taskExecuted(task);
-        //printExecutor.execute(() -> System.out.println("Executed request for service "+task.getService().getId()+
+        callbackExecutor.execute(() -> {
+            listener.taskExecuted(task);
+        });        //printExecutor.execute(() -> System.out.println("Executed request for service "+task.getService().getId()+
                // " in "+task.getResponseTime()+" queue "+task.getQueueTime()+ " service "+task.getServiceTime()));
     }
 

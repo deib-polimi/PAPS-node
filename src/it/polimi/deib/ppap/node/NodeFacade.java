@@ -72,6 +72,9 @@ public class NodeFacade {
 
     public void stop(){
         timer.cancel();
+        for(Service s : new HashSet<>(services.keySet())){
+            removeService(s);
+        }
         loggerService.shutdownNow();
     }
 
@@ -122,8 +125,17 @@ public class NodeFacade {
         facade.addService(two);
         facade.start();
 
-        new Thread(executeRequests(facade, 100000, one)).start();
-        new Thread(executeRequests(facade, 100000, two)).start();
+        Thread t1 = new Thread(executeRequests(facade, 1000, one));
+        Thread t2 = new Thread(executeRequests(facade, 1000, two));
+
+        t1.start();
+        t2.start();
+
+        t1.join();
+        t2.join();
+
+        facade.stop();
+        System.out.println("END");
 
     }
 
