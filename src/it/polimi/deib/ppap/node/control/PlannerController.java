@@ -4,6 +4,7 @@ package it.polimi.deib.ppap.node.control;
 import it.polimi.deib.ppap.node.monitoring.MonitoringData;
 import it.polimi.deib.ppap.node.services.Service;
 
+import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -22,7 +23,7 @@ public class PlannerController {
 
     public synchronized Map<Service, Float> control(Map<Service, MonitoringData> monitoring) {
         Map<Service, Float> allocations = monitoring.entrySet().stream()
-                .map(e -> Map.entry(e.getKey(), planners.get(e.getKey()).nextResourceAllocation(e.getValue())))
+                .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), planners.get(e.getKey()).nextResourceAllocation(e.getValue())))
                 .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
         allocations = solveContention(mapAllocations(allocations, Math::ceil));
         allocations.entrySet().forEach(e -> planners.get(e.getKey()).updateState(e.getValue()));
@@ -35,7 +36,7 @@ public class PlannerController {
 
     private <E> Map<Service, Float> mapAllocations(Map<Service, Float> allocations, Function<Float, Double> f){
         return allocations.entrySet().stream()
-                .map((e) -> Map.entry(e.getKey(), f.apply(e.getValue()).floatValue())).collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+                .map((e) -> new AbstractMap.SimpleEntry<>(e.getKey(), f.apply(e.getValue()).floatValue())).collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
     }
 
     private Map<Service, Float> solveContention(Map<Service, Float> allocations){
@@ -45,7 +46,7 @@ public class PlannerController {
             return allocations;
         }
 
-        return allocations.entrySet().stream().map(e -> Map.entry(e.getKey(), heuristic(e.getKey(), e.getValue(), sum))).collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+        return allocations.entrySet().stream().map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), heuristic(e.getKey(), e.getValue(), sum))).collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
     }
 
     public synchronized void addService(Service service){

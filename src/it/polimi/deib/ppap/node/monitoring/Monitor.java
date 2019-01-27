@@ -6,6 +6,7 @@ import it.polimi.deib.ppap.node.services.ServiceExecutor;
 import it.polimi.deib.ppap.node.services.ServiceRequest;
 import javafx.concurrent.Task;
 
+import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -24,7 +25,7 @@ public class Monitor implements TaskListener<ServiceRequest> {
     }
 
     public Map<Service, MonitoringData> read(){
-        return data.entrySet().stream().map((e) -> Map.entry(e.getKey(), e.getValue().read())).collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+        return data.entrySet().stream().map((e) -> new AbstractMap.SimpleEntry<>(e.getKey(), e.getValue().read())).collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
     }
 
 
