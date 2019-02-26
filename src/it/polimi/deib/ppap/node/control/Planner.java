@@ -47,8 +47,6 @@ public class Planner
 
         core = req*(ut-A1_NOM-1000.0f*A2_NOM)/(1000.0f*A3_NOM*(A1_NOM-ut));
 
-
-
         float approxCore = Math.max(Math.abs(core), CORE_MIN);
 
         float approxUt = ((1000.0f*A2_NOM+A1_NOM)*req+1000.0f*A1_NOM*A3_NOM*approxCore)/(req+1000.0f*A3_NOM*approxCore);
