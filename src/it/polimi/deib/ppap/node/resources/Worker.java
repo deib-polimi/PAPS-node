@@ -7,54 +7,37 @@ import java.util.concurrent.TimeUnit;
 public class Worker extends Thread {
 
     private DynamicThreadPool pool;
-    private boolean available;
     private String id;
-    private boolean alive;
+    private boolean kill;
 
     public Worker(String id, DynamicThreadPool pool){
         this.pool = pool;
         this.id = id;
-        available = false;
-        alive = true;
+        kill = false;
     }
 
-    protected synchronized void setAvailable(boolean available){
-        this.available = available;
-    }
 
     protected synchronized void kill(){
-        alive = false;
+        kill = true;
     }
 
     @Override
     public void run() {
         super.run();
 
-        while (alive || available){
+        while (!kill){
             try {
-                if (available){
-                    Runnable task = pool.queue.poll(500, TimeUnit.MILLISECONDS);
-                    if(task == null) {
-                        if (!alive)
-                            available = false;
-                        continue;
-                    }
+                Runnable task = pool.queue.poll(500, TimeUnit.MILLISECONDS);
+                if(task != null ){
                     pool.taskStarted(task);
                     task.run();
                     pool.taskExecuted(task);
                 }
-                else {
-                    //System.out.println("waiting...");
-                    synchronized (this) {
-                        wait();
-                    }
-                    //System.out.println("...notified");
-                }
-            } catch (InterruptedException e) {
-                        e.printStackTrace();
+
+            } catch (Exception e) {
+                kill = true;
             }
         }
-
     }
 
 }

@@ -26,12 +26,6 @@ public class ServiceExecutor implements TaskListener<ServiceRequest>  {
         pool.start();
     }
 
-    public void shutdown(){
-        pool.shutdown();
-        callbackExecutor.shutdown();
-
-    }
-
     public void shutdownNow(){
         pool.shutdownNow();
         callbackExecutor.shutdownNow();

@@ -31,6 +31,9 @@ public class NodeFacade {
     private History history = new History();
     private ExecutorService loggerService = Executors.newSingleThreadExecutor();
     private Logger logger;
+    private int lastThreads = -1;
+    private int lastAllocation = -1;
+    private int currentAllocation = 0;
 
     public NodeFacade(long memory, long controlPeriodMillis, float alpha){
         this.memory = memory;
@@ -84,10 +87,15 @@ public class NodeFacade {
         else throw new ServiceNotFoundException();
     }
 
+
     private void tick(){
+        currentAllocation = 0;
         Map<Service, MonitoringData> monitoring = monitor.read();
         Map<Service, Float> allocations = controller.control(monitoring);
-        allocations.forEach((service, allocation) -> services.get(service).setSize(allocation.intValue()));
+        allocations.forEach((service, allocation) -> {
+            services.get(service).setSize(allocation.intValue());
+            currentAllocation += allocation.intValue();
+        });
         allocations.forEach((service, allocation) -> history.addData(service, monitoring.get(service), allocation, getLastOptimalAllocation(service)));
         long ts = System.currentTimeMillis();
         loggerService.execute( () -> {
@@ -98,6 +106,10 @@ public class NodeFacade {
                 }
             }
         });
+
+        lastThreads = Thread.activeCount();
+        lastAllocation = currentAllocation;
+
     }
 
     // retrieve and clear history of a service
@@ -110,106 +122,6 @@ public class NodeFacade {
     }
 
     public class ServiceNotFoundException extends RuntimeException { }
-
-
-    public static void main(String[] args) throws InterruptedException, IOException {
-
-        NodeFacade facade = new NodeFacade(8192, 3000, 0.9f);
-        facade.setLogger(Utils.getLogger("exp1.log"));
-
-        Service one = new Service("1", 128, 120);
-        Service two = new Service("2", 256, 100);
-        one.setTargetAllocation(32);
-        two.setTargetAllocation(16);
-        facade.addService(one);
-        facade.addService(two);
-        facade.start();
-
-        Thread t1 = new Thread(executeRequests(facade, 1000, one));
-        Thread t2 = new Thread(executeRequests(facade, 1000, two));
-
-        t1.start();
-        t2.start();
-
-        t1.join();
-        t2.join();
-
-        facade.stop();
-        System.out.println("END");
-
-    }
-
-
-    private static Runnable executeRequests(NodeFacade facade, long num, Service service){
-        return () -> {
-
-            NormalDistribution n = Utils.getNormalDistribution(service.getSLA()*0.8, service.getSLA()*0.8*0.1);
-
-            System.out.println("PHASE 1: "+service);
-            // stable system at the beginning
-            for (int i = 0; i < 200; i++) {
-                facade.execute(new ServiceRequest(service, (long) n.random()));
-                try {
-                    Thread.sleep((long) service.getSLA());
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            System.out.println("PHASE 2: "+service);
-            // decreasing inter-arrival rate
-            for (int i = 0; i < num/3; i++) {
-                    facade.execute(new ServiceRequest(service, (long) n.random()));
-                    try {
-                        Thread.sleep((long) (n.random()*0.8));
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-            System.out.println("PHASE 3: "+service);
-            // peak inter-arrival rate
-            for (int i = 0; i < num/3; i++) {
-                facade.execute(new ServiceRequest(service, (long) n.random()));
-                try {
-                    Thread.sleep((long) (n.random()*0.3));
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            System.out.println("PHASE 4: "+service);
-            // decreasing inter-arrival rate
-            for (int i = 0; i < num/3; i++) {
-                facade.execute(new ServiceRequest(service, (long) n.random()));
-                try {
-                    Thread.sleep((long) (n.random()*0.7));
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            System.out.println("PHASE 5: "+service);
-            // peak inter-arrival rate
-            for (int i = 0; i < num; i++) {
-                facade.execute(new ServiceRequest(service, (long) n.random()));
-                try {
-                    Thread.sleep((long) (n.random()*0.1));
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-
-
-            System.out.println("END: "+service);
-
-            };
-
-
-
-
-    }
-
 
 
 
