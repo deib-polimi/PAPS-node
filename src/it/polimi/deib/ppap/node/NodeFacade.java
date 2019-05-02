@@ -21,6 +21,7 @@ import java.util.logging.*;
 
 public class NodeFacade {
 
+    private String nodeId;
     private long memory;
     private long controlPeriod;
 
@@ -31,13 +32,20 @@ public class NodeFacade {
     private History history = new History();
     private ExecutorService loggerService = Executors.newSingleThreadExecutor();
     private Logger logger;
+    private Optional<TickListener> tickListener;
     private int lastThreads = -1;
     private int lastAllocation = -1;
     private int currentAllocation = 0;
 
-    public NodeFacade(long memory, long controlPeriodMillis, float alpha){
+    public NodeFacade(
+            String nodeId,
+            long memory,
+            long controlPeriodMillis,
+            float alpha){
+        this.nodeId = nodeId;
         this.memory = memory;
         this.controlPeriod = controlPeriodMillis;
+        this.tickListener = Optional.empty();
         controller = new PlannerController(alpha, memory);
     }
 
@@ -84,32 +92,12 @@ public class NodeFacade {
     public void execute(ServiceRequest request) {
         if (services.containsKey(request.getService()))
             this.services.get(request.getService()).execute(request);
-        else throw new ServiceNotFoundException();
+        //else throw new ServiceNotFoundException();
     }
 
-
-    private void tick(){
-        currentAllocation = 0;
-        Map<Service, MonitoringData> monitoring = monitor.read();
-        Map<Service, Float> allocations = controller.control(monitoring);
-        allocations.forEach((service, allocation) -> {
-            services.get(service).setSize(allocation.intValue());
-            currentAllocation += allocation.intValue();
-        });
-        allocations.forEach((service, allocation) -> history.addData(service, monitoring.get(service), allocation, getLastOptimalAllocation(service)));
-        long ts = System.currentTimeMillis();
-        loggerService.execute( () -> {
-            if (logger != null){
-                for (Service s : monitoring.keySet()){
-                    MonitoringData data = monitoring.get(s);
-                    logger.info(ts+","+s+","+data.getResponseTime()+","+data.getRequests()+","+allocations.get(s));
-                }
-            }
-        });
-
-        lastThreads = Thread.activeCount();
-        lastAllocation = currentAllocation;
-
+    public class ServiceNotFoundException extends RuntimeException {}
+    public void setTickListener(TickListener tickListener){
+        this.tickListener = Optional.of(tickListener);
     }
 
     // retrieve and clear history of a service
@@ -121,7 +109,43 @@ public class NodeFacade {
         return controller.getLastOptimalAllocation(service);
     }
 
-    public class ServiceNotFoundException extends RuntimeException { }
+    public boolean isServing(Service service) {
+        return this.services.containsKey(service);
+    }
+
+    private void tick(){
+        //System.out.println("Control Level Allocation in Node " + nodeId);
+        currentAllocation = 0;
+        Map<Service, MonitoringData> monitoring = monitor.read();
+        Map<Service, Float> allocations = controller.control(monitoring);
+        allocations.forEach((service, allocation) -> {
+            services.get(service).setSize(allocation.intValue());
+            currentAllocation += allocation.intValue();
+        });
+        allocations.forEach((service, allocation) -> services.get(service).setSize(allocation.intValue()));
+        //allocations.forEach((service, allocation) -> history.addData(service, monitoring.get(service), allocation, getLastOptimalAllocation(service)));
+        long ts = System.currentTimeMillis();
+        loggerService.execute( () -> {
+            if (logger != null){
+                for (Service s : monitoring.keySet()){
+                    MonitoringData data = monitoring.get(s);
+                    logger.info(ts+","+s+","+data.getResponseTime()+","+data.getRequests()+","+allocations.get(s));
+                }
+            }
+        });
+        tickListener.ifPresent((l) -> l.afterTick());
+
+        lastThreads = Thread.activeCount();
+        lastAllocation = currentAllocation;
+
+    }
+
+    public interface TickListener{
+        public void afterTick();
+    }
+
+    }
+
 
 
 
