@@ -16,16 +16,13 @@ public class DynamicThreadPool implements Executor, TaskListener {
     private List<Worker> workers = new ArrayList<>();
     private int size;
     private final int maxSize;
+    private final int startSize;
 
     public DynamicThreadPool(int startSize, int maxSize){
         this.maxSize = maxSize;
         this.listener = Optional.empty();
-        for (int i = 1; i <= maxSize; i++){
-            Worker worker = new Worker(String.valueOf(i), this);
-            workers.add(worker);
-        }
-
-        setSize(startSize);
+        this.startSize = 2;
+        this.size = 0;
     }
 
     public void setTaskListener(TaskListener listener){
@@ -33,44 +30,52 @@ public class DynamicThreadPool implements Executor, TaskListener {
     }
 
     public void start(){
-        for(Worker w: workers)
-            w.start();
+        setSize(startSize);
     }
 
     public void shutdownNow(){
         for(Worker w: workers) {
-            w.setAvailable(false);
+            shutdownNow(w);
         }
-        shutdown();
     }
 
-    public void shutdown(){
-        for(Worker w: workers) {
-            w.kill();
-            synchronized (w) {
-                w.notifyAll();
-                try {
-                    w.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+    private void shutdownNow(Worker w) {
+        w.kill();
+        /*
+        synchronized (w) {
+            w.notifyAll();
+            try {
+                w.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-        }
+        }*/
     }
 
     public synchronized void setSize(int size){
         if (size > maxSize)
             size = maxSize;
 
+        var oldSize = this.size;
         this.size = size;
 
-        for (int i = 0; i < maxSize; i++){
-            Worker worker = workers.get(i);
-            synchronized (worker){
-                worker.setAvailable(i < size);
-                worker.notify();
+        var diff = size - workers.size();
+        if (diff >= 0) {
+            for (var i = 0; i < diff; i++) {
+                var worker = new Worker(String.valueOf(oldSize+i+1),this);
+                workers.add(worker);
+                worker.start();
             }
         }
+        else {
+            diff = -diff;
+            for (var i = 0; i < diff; i++) {
+                shutdownNow(workers.remove(0));
+            }
+        }
+
+        this.size = size;
+        assert workers.size() == size;
     }
 
     public synchronized int getSize(){
