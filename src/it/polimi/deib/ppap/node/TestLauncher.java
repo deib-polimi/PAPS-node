@@ -11,19 +11,19 @@ class TestLauncher {
 
     public static void main(String[] args) throws InterruptedException, IOException {
 
-        var facade = new NodeFacade(8192, 9000, 0.9f);
+        NodeFacade facade = new NodeFacade("1", 8192, 9000, 0.9f);
         facade.setLogger(Utils.getLogger("exp1.log"));
 
-        var one = new Service("1", 128, 120);
-        var two = new Service("2", 256, 100);
+        Service one = new Service("1", 128, 120);
+        Service two = new Service("2", 256, 100);
         one.setTargetAllocation(32);
         two.setTargetAllocation(16);
         facade.addService(one);
         facade.addService(two);
         facade.start();
 
-        var t1 = new Thread(executeRequests(facade, 1000, one));
-        var t2 = new Thread(executeRequests(facade, 1000, two));
+        Thread t1 = new Thread(executeRequests(facade, 1000, one));
+        Thread t2 = new Thread(executeRequests(facade, 1000, two));
 
         t1.start();
         t2.start();

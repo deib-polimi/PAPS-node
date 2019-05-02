@@ -1,6 +1,6 @@
 package it.polimi.deib.ppap.node.services;
 
-public class Service {
+public class Service implements Comparable{
 
     private String id;
     private long memory;
@@ -13,6 +13,11 @@ public class Service {
         this.SLA = SLA;
     }
 
+    public Service(Service copy){
+        this.id = copy.id;
+        this.memory = copy.memory;
+        this.SLA = copy.SLA;
+    }
 
     public long getMemory() {
         return memory;
@@ -41,6 +46,11 @@ public class Service {
     @Override
     public int hashCode() {
         return id.hashCode();
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        return this.id.compareTo(((Service)o).getId());
     }
 
     @Override

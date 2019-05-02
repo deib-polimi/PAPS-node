@@ -56,20 +56,20 @@ public class DynamicThreadPool implements Executor, TaskListener {
         if (size > maxSize)
             size = maxSize;
 
-        var oldSize = this.size;
+        int oldSize = this.size;
         this.size = size;
 
-        var diff = size - workers.size();
+        int diff = size - workers.size();
         if (diff >= 0) {
-            for (var i = 0; i < diff; i++) {
-                var worker = new Worker(String.valueOf(oldSize+i+1),this);
+            for (int i = 0; i < diff; i++) {
+                Worker worker = new Worker(String.valueOf(oldSize+i+1),this);
                 workers.add(worker);
                 worker.start();
             }
         }
         else {
             diff = -diff;
-            for (var i = 0; i < diff; i++) {
+            for (int i = 0; i < diff; i++) {
                 shutdownNow(workers.remove(0));
             }
         }
