@@ -34,6 +34,10 @@ public class PlannerController {
         return planners.get(service).lastOptimalAllocation();
     }
 
+    public float getStaticAllocation(Service service, float req){
+        return planners.get(service).computeStaticAllocation(req);
+    }
+
     private <E> Map<Service, Float> mapAllocations(Map<Service, Float> allocations, Function<Float, Double> f){
         return allocations.entrySet().stream()
                 .map((e) -> new AbstractMap.SimpleEntry<>(e.getKey(), f.apply(e.getValue()).floatValue())).collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));

@@ -109,6 +109,11 @@ public class NodeFacade {
         return controller.getLastOptimalAllocation(service);
     }
 
+    public float getStaticAllocation(Service service, float req){
+        return controller.getStaticAllocation(service, req);
+    }
+
+
     public boolean isServing(Service service) {
         return this.services.containsKey(service);
     }

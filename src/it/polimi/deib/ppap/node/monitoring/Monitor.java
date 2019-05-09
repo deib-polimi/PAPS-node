@@ -2,9 +2,7 @@ package it.polimi.deib.ppap.node.monitoring;
 
 import it.polimi.deib.ppap.node.resources.TaskListener;
 import it.polimi.deib.ppap.node.services.Service;
-import it.polimi.deib.ppap.node.services.ServiceExecutor;
 import it.polimi.deib.ppap.node.services.ServiceRequest;
-import javafx.concurrent.Task;
 
 import java.util.AbstractMap;
 import java.util.HashMap;
