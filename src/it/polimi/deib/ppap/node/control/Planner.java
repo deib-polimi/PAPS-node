@@ -60,7 +60,7 @@ public class Planner
     }
 
     public void updateState(float allocatedCore) {
-        System.out.println("ALLOCATED CORE "+allocatedCore);
+        System.out.println("Allocated CTNs: "+allocatedCore);
         float approxUt = ((1000.0f * A2_NOM + A1_NOM) * req +
                 1000.0f * A1_NOM * A3_NOM * allocatedCore) / (req + 1000.0f * A3_NOM * allocatedCore); // recompute PI contribution
 
