@@ -81,6 +81,10 @@ public class NodeFacade {
         services.remove(service);
     }
 
+    public void setTargetAllocation(Service service, float allocation){
+        service.setTargetAllocation(allocation);
+    }
+
     public void stop(){
         timer.cancel();
         for(Service s : new HashSet<>(services.keySet())){

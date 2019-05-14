@@ -15,6 +15,12 @@ public class ServiceRequest implements Runnable {
         this.networkTime = 0L;
     }
 
+    public ServiceRequest(Service service, long serviceTime, long networkTime){
+        this.service = service;
+        this.serviceTime = serviceTime;
+        this.networkTime = networkTime;
+    }
+
     @Override
     public void run() {
         try {
