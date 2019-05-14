@@ -75,5 +75,9 @@ public class Planner
         return -req*(1000*A2_NOM-SLA/1000+A1_NOM)/(1000*A3_NOM*(SLA/1000-A1_NOM));
     }
 
+    public static void main(String[] args){
+        Planner p = new Planner(new Service("1", 1, 0.6f), 0.5f);
+        System.out.println(p.computeStaticAllocation(1050));
+    }
 
 }

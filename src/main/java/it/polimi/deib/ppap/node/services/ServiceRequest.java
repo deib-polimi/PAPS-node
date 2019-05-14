@@ -6,22 +6,31 @@ public class ServiceRequest implements Runnable {
     private long startService;
     private long end;
     private Service service;
-    private long serviceAndNetworkTime;
+    private long serviceTime;
+    private long networkTime;
 
-    public ServiceRequest(Service service, long serviceAndNetworkTime){
+    public ServiceRequest(Service service, long serviceTime){
         this.service = service;
-        this.serviceAndNetworkTime = serviceAndNetworkTime;
+        this.serviceTime = serviceTime;
+        this.networkTime = 0L;
     }
 
     @Override
     public void run() {
         try {
-            Thread.sleep(serviceAndNetworkTime);
+            Thread.sleep(serviceTime);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
 
+    public void setNetworkTime(long networkTime) {
+        this.networkTime = networkTime;
+    }
+
+    public long getNetworkTime(){
+        return networkTime;
+    }
 
     public void setStart(){
         start = System.currentTimeMillis();
@@ -37,7 +46,7 @@ public class ServiceRequest implements Runnable {
     }
 
     public long getNominalServiceTime(){
-        return serviceAndNetworkTime;
+        return serviceTime;
     }
 
     public long getServiceTime(){
@@ -45,7 +54,7 @@ public class ServiceRequest implements Runnable {
     }
 
     public long getResponseTime(){
-        return end-start;
+        return end-start+networkTime;
     }
 
     public long getQueueTime(){
