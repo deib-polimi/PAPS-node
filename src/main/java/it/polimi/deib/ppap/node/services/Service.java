@@ -1,6 +1,6 @@
 package it.polimi.deib.ppap.node.services;
 
-public class Service implements Comparable{
+public class Service implements Comparable {
 
     private String id;
     private long memory;

@@ -21,22 +21,27 @@ public class PlannerController {
         this.nodeMemory = nodeMemory;
     }
 
-    public synchronized Map<Service, Float> control(Map<Service, MonitoringData> monitoring) {
+    public synchronized Map<Service, Float> control(Map<Service, MonitoringData> monitoring, boolean control) {
+        if (control) {
         Map<Service, Float> allocations = monitoring.entrySet().stream()
                 .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), planners.get(e.getKey()).nextResourceAllocation(e.getValue())))
                 .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
-        allocations = solveContention(mapAllocations(allocations, Math::ceil));
-        allocations.entrySet().forEach(e -> planners.get(e.getKey()).updateState(e.getValue()));
-        return allocations;
+
+            allocations = solveContention(mapAllocations(allocations, Math::ceil));
+            allocations.entrySet().forEach(e -> planners.get(e.getKey()).updateState(e.getValue()));
+            return allocations;
+        }
+        else {
+            return planners.keySet().stream()
+                    .map(e -> new AbstractMap.SimpleEntry<>(e, e.getTargetAllocation()))
+                    .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+        }
     }
 
     public float getLastOptimalAllocation(Service service){
         return planners.get(service).lastOptimalAllocation();
     }
 
-    public float getStaticAllocation(Service service, float req){
-        return planners.get(service).computeStaticAllocation(req);
-    }
 
     private <E> Map<Service, Float> mapAllocations(Map<Service, Float> allocations, Function<Float, Double> f){
         return allocations.entrySet().stream()

@@ -12,9 +12,9 @@ public class Planner
     private final int CORE_MIN = 1;
     private final Random random = new Random();
 
-    private final float A1_NOM = 0.1963f;
-    private final float A2_NOM = 0.002f;
-    private final float A3_NOM = 0.5658f;
+    private final static float A1_NOM = 0.1963f;
+    private final static float A2_NOM = 0.002f;
+    private final static float A3_NOM = 0.5658f;
     private final float SLA;
     private final float P_NOM = 0.8f;
     private final float A;
@@ -71,13 +71,12 @@ public class Planner
         return core;
     }
 
-    public float computeStaticAllocation(float req){
-        return -req*(1000*A2_NOM-SLA/1000+A1_NOM)/(1000*A3_NOM*(SLA/1000-A1_NOM));
+    public static float computeStaticAllocation(float req, float targetResponseTimeMillis){
+        return -req*(1000*A2_NOM-targetResponseTimeMillis/1000+A1_NOM)/(1000*A3_NOM*(targetResponseTimeMillis/1000-A1_NOM));
     }
 
     public static void main(String[] args){
-        Planner p = new Planner(new Service("1", 1, 0.6f), 0.5f);
-        System.out.println(p.computeStaticAllocation(1050));
+
     }
 
 }

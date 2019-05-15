@@ -1,22 +1,20 @@
 package it.polimi.deib.ppap.node;
 
 
-import it.polimi.deib.ppap.node.commons.Utils;
+import it.polimi.deib.ppap.node.control.Planner;
 import it.polimi.deib.ppap.node.control.PlannerController;
-import it.polimi.deib.ppap.node.history.HistoryData;
 import it.polimi.deib.ppap.node.history.History;
+import it.polimi.deib.ppap.node.history.HistoryData;
 import it.polimi.deib.ppap.node.monitoring.Monitor;
 import it.polimi.deib.ppap.node.monitoring.MonitoringData;
 import it.polimi.deib.ppap.node.services.Service;
 import it.polimi.deib.ppap.node.services.ServiceExecutor;
 import it.polimi.deib.ppap.node.services.ServiceRequest;
-import it.polimi.deib.ppap.node.commons.NormalDistribution;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.logging.*;
+import java.util.logging.Logger;
 
 
 public class NodeFacade {
@@ -36,6 +34,7 @@ public class NodeFacade {
     private int lastThreads = -1;
     private int lastAllocation = -1;
     private int currentAllocation = 0;
+    private boolean control = true;
 
     public NodeFacade(
             String nodeId,
@@ -49,6 +48,10 @@ public class NodeFacade {
         controller = new PlannerController(alpha, memory);
     }
 
+    public void setControl(boolean control){
+        this.control = control;
+    }
+
     public void start(){
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
@@ -60,7 +63,7 @@ public class NodeFacade {
 
     public void setLogger(Logger logger){
         this.logger = logger;
-        logger.info("ts,id,rt,rq,al");
+        logger.info("ts,id,sla,rt,rq,al");
     }
 
     public synchronized void addService(Service service){
@@ -113,9 +116,9 @@ public class NodeFacade {
         return controller.getLastOptimalAllocation(service);
     }
 
-    public float getStaticAllocation(Service service, float interArrival){
-        float req = ((float) controlPeriod)/interArrival;
-        return controller.getStaticAllocation(service, req);
+    public static float getStaticAllocation(float interArrival, float targetResponseTimeMillis, float controlPeriodMillis){
+        float req = (controlPeriodMillis/1000.0f)/interArrival;
+        return Planner.computeStaticAllocation(req, targetResponseTimeMillis);
     }
 
     public boolean isServing(Service service) {
@@ -126,19 +129,20 @@ public class NodeFacade {
         //System.out.println("Control Level Allocation in Node " + nodeId);
         currentAllocation = 0;
         Map<Service, MonitoringData> monitoring = monitor.read();
-        Map<Service, Float> allocations = controller.control(monitoring);
+        Map<Service, Float> allocations = controller.control(monitoring, control);
         allocations.forEach((service, allocation) -> {
             services.get(service).setSize(allocation.intValue());
             currentAllocation += allocation.intValue();
         });
-        allocations.forEach((service, allocation) -> services.get(service).setSize(allocation.intValue()));
-        //allocations.forEach((service, allocation) -> history.addData(service, monitoring.get(service), allocation, getLastOptimalAllocation(service)));
+
+        allocations.forEach((service, allocation) -> history.addData(service, monitoring.get(service), allocation, getLastOptimalAllocation(service)));
+
         long ts = System.currentTimeMillis();
         loggerService.execute( () -> {
             if (logger != null){
                 for (Service s : monitoring.keySet()){
                     MonitoringData data = monitoring.get(s);
-                    logger.info(ts+","+s+","+data.getResponseTime()+","+data.getRequests()+","+allocations.get(s));
+                    logger.info(ts+","+s+","+s.getSLA()+","+data.getResponseTime()+","+data.getRequests()+","+allocations.get(s));
                 }
             }
         });
