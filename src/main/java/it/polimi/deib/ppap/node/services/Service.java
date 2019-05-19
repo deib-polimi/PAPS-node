@@ -5,18 +5,20 @@ public class Service implements Comparable {
     private String id;
     private long memory;
     private float targetAllocation;
-    private float SLA;
+    private float RT;
+    private float ET;
 
-    public Service(String id, long memory, float SLA){
+    public Service(String id, long memory, float RT, float ET){
         this.id = id;
         this.memory = memory;
-        this.SLA = SLA;
+        this.RT = RT;
+        this.ET = ET;
     }
 
     public Service(Service copy){
         this.id = copy.id;
         this.memory = copy.memory;
-        this.SLA = copy.SLA;
+        this.RT = copy.RT;
     }
 
     public long getMemory() {
@@ -35,8 +37,12 @@ public class Service implements Comparable {
         return targetAllocation;
     }
 
-    public float getSLA() {
-        return SLA;
+    public float getRT() {
+        return RT;
+    }
+
+    public float getET() {
+        return ET;
     }
 
     @Override

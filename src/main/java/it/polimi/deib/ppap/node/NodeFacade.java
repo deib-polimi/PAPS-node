@@ -142,7 +142,7 @@ public class NodeFacade {
             if (logger != null){
                 for (Service s : monitoring.keySet()){
                     MonitoringData data = monitoring.get(s);
-                    logger.info(ts+","+s+","+s.getSLA()+","+data.getResponseTime()+","+data.getRequests()+","+allocations.get(s));
+                    logger.info(ts+","+s+","+s.getRT()+","+data.getResponseTime()+","+data.getRequests()+","+allocations.get(s));
                 }
             }
         });

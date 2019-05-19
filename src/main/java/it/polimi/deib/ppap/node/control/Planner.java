@@ -29,7 +29,7 @@ public class Planner
     public Planner(Service service, float alpha)
     {
         A = alpha;
-        SLA = service.getSLA();
+        SLA = service.getRT();
         this.service = service;
     }
 

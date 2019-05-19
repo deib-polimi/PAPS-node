@@ -14,8 +14,8 @@ class TestLauncher {
         NodeFacade facade = new NodeFacade("1", 8192, 9000, 0.9f);
         facade.setLogger(Utils.getLogger("exp1.log"));
 
-        Service one = new Service("1", 128, 120);
-        Service two = new Service("2", 256, 100);
+        Service one = new Service("1", 128, 120, 90);
+        Service two = new Service("2", 256, 100, 90);
         one.setTargetAllocation(32);
         two.setTargetAllocation(16);
         facade.addService(one);
@@ -40,14 +40,14 @@ class TestLauncher {
     private static Runnable executeRequests(NodeFacade facade, long num, Service service){
         return () -> {
 
-            NormalDistribution n = Utils.getNormalDistribution(service.getSLA()*0.8, service.getSLA()*0.8*0.1);
+            NormalDistribution n = Utils.getNormalDistribution(service.getRT()*0.8, service.getRT()*0.8*0.1);
 
             System.out.println("PHASE 1: "+service);
             // stable system at the beginning
             for (int i = 0; i < 200; i++) {
                 facade.execute(new ServiceRequest(service, (long) n.random()));
                 try {
-                    Thread.sleep((long) service.getSLA());
+                    Thread.sleep((long) service.getRT());
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
