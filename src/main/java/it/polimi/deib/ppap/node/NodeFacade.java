@@ -47,7 +47,7 @@ public class NodeFacade {
         this.controlPeriod = controlPeriodMillis;
         this.tickListener = Optional.empty();
         controller = new PlannerController(alpha, memory);
-        this.control = false;
+        this.control = control;
     }
 
     public void start(){
