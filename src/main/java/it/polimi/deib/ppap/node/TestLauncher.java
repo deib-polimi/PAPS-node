@@ -11,7 +11,7 @@ class TestLauncher {
 
     public static void main(String[] args) throws InterruptedException, IOException {
 
-        NodeFacade facade = new NodeFacade("1", 8192, 9000, 0.9f);
+        NodeFacade facade = new NodeFacade("1", 8192, 9000, 0.9f, true);
         facade.setLogger(Utils.getLogger("exp1.log"));
 
         Service one = new Service("1", 128, 120, 90);

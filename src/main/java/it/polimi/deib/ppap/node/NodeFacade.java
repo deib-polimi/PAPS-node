@@ -34,22 +34,20 @@ public class NodeFacade {
     private int lastThreads = -1;
     private int lastAllocation = -1;
     private int currentAllocation = 0;
-    private boolean control = true;
+    private final boolean control;
 
     public NodeFacade(
             String nodeId,
             long memory,
             long controlPeriodMillis,
-            float alpha){
+            float alpha,
+            boolean control){
         this.nodeId = nodeId;
         this.memory = memory;
         this.controlPeriod = controlPeriodMillis;
         this.tickListener = Optional.empty();
         controller = new PlannerController(alpha, memory);
-    }
-
-    public void setControl(boolean control){
-        this.control = control;
+        this.control = false;
     }
 
     public void start(){
