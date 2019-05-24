@@ -30,7 +30,7 @@ public class PlannerController {
             allocations = solveContention(mapAllocations(allocations, Math::ceil));
             allocations.entrySet().forEach(e -> {
                         planners.get(e.getKey()).updateState(e.getValue());
-                        System.out.println("Allocated CTNs for " + e.getKey() + " " + e.getValue());
+                        System.out.println("Allocated " + e.getValue() + " CTN(s) for " + e.getKey());
                     }
             );
             return allocations;

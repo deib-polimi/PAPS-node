@@ -114,8 +114,8 @@ public class NodeFacade {
         return controller.getLastOptimalAllocation(service);
     }
 
-    public static float getStaticAllocation(float interArrival, float targetResponseTimeMillis, float controlPeriodMillis){
-        float req = (controlPeriodMillis/1000.0f)/interArrival;
+    public static float getStaticAllocation(float interArrivalMillis, float targetResponseTimeMillis, float controlPeriodMillis){
+        float req = controlPeriodMillis/interArrivalMillis;
         return Planner.computeStaticAllocation(req, targetResponseTimeMillis);
     }
 
