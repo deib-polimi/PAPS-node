@@ -19,6 +19,9 @@ import java.util.logging.Logger;
 
 public class NodeFacade {
 
+
+    public static final String LOG_HEADER = "nId,ts,sId,sla,rt,rq,al";
+
     private String nodeId;
     private long memory;
     private long controlPeriod;
@@ -34,7 +37,7 @@ public class NodeFacade {
     private int lastThreads = -1;
     private int lastAllocation = -1;
     private int currentAllocation = 0;
-    private final boolean control;
+    private boolean control, verbose = true;
 
     public NodeFacade(
             String nodeId,
@@ -50,6 +53,10 @@ public class NodeFacade {
         this.control = control;
     }
 
+    public void setVerbose(boolean verbose){
+        this.verbose = verbose;
+    }
+
     public void start(){
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
@@ -61,7 +68,6 @@ public class NodeFacade {
 
     public void setLogger(Logger logger){
         this.logger = logger;
-        logger.info("ts,id,sla,rt,rq,al");
     }
 
     public synchronized void addService(Service service){
@@ -83,7 +89,14 @@ public class NodeFacade {
     }
 
     public void setTargetAllocation(Service service, float allocation){
-        service.setTargetAllocation(allocation);
+        for (Service s : services.keySet()){
+            if (s.equals(service)) {
+                s.setTargetAllocation(allocation);
+                break;
+            }
+        }
+
+
     }
 
     public void stop(){
@@ -124,7 +137,6 @@ public class NodeFacade {
     }
 
     private void tick(){
-        //System.out.println("Control Level Allocation in Node " + nodeId);
         currentAllocation = 0;
         Map<Service, MonitoringData> monitoring = monitor.read();
         Map<Service, Float> allocations = controller.control(monitoring, control);
@@ -136,11 +148,12 @@ public class NodeFacade {
         allocations.forEach((service, allocation) -> history.addData(service, monitoring.get(service), allocation, getLastOptimalAllocation(service)));
 
         long ts = System.currentTimeMillis();
+
         loggerService.execute( () -> {
             if (logger != null){
                 for (Service s : monitoring.keySet()){
                     MonitoringData data = monitoring.get(s);
-                    logger.info(ts+","+s+","+s.getRT()+","+data.getResponseTime()+","+data.getRequests()+","+allocations.get(s));
+                    logger.info(nodeId+","+ts+","+s+","+s.getRT()+","+data.getResponseTime()+","+data.getRequests()+","+allocations.get(s));
                 }
             }
         });

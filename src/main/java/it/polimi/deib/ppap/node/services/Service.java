@@ -30,7 +30,11 @@ public class Service implements Comparable {
     }
 
     public void setTargetAllocation(float targetAllocation) {
-        this.targetAllocation = targetAllocation;
+        this.targetAllocation = (float) Math.ceil(targetAllocation);
+    }
+
+    public float getMaxAllocation() {
+        return this.targetAllocation * 5;
     }
 
     public float getTargetAllocation() {

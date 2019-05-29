@@ -19,27 +19,35 @@ public class PlannerController {
     public PlannerController(float alpha, long nodeMemory){
         this.alpha = alpha;
         this.nodeMemory = nodeMemory;
+
     }
 
     public synchronized Map<Service, Float> control(Map<Service, MonitoringData> monitoring, boolean control) {
+
+        Map<Service, Float> allocations = null;
         if (control) {
-        Map<Service, Float> allocations = monitoring.entrySet().stream()
+            allocations = monitoring.entrySet().stream()
                 .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), planners.get(e.getKey()).nextResourceAllocation(e.getValue())))
                 .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
 
             allocations = solveContention(mapAllocations(allocations, Math::ceil));
             allocations.entrySet().forEach(e -> {
                         planners.get(e.getKey()).updateState(e.getValue());
-                        System.out.println("Allocated " + e.getValue() + " CTN(s) for " + e.getKey());
+                        //System.out.println("Allocated " + e.getValue() + " CTN(s) for " + e.getKey());
                     }
             );
-            return allocations;
         }
         else {
-            return planners.keySet().stream()
+            allocations = planners.keySet().stream()
                     .map(e -> new AbstractMap.SimpleEntry<>(e, e.getTargetAllocation()))
                     .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+
+            allocations = solveContention(mapAllocations(allocations, Math::ceil));
+
         }
+
+        return allocations;
+
     }
 
     public float getLastOptimalAllocation(Service service){
@@ -72,7 +80,7 @@ public class PlannerController {
 
     private float heuristic(Service service, float request, float allocationsSum){
         float weight =  service.getMemory()*(request/allocationsSum + service.getTargetAllocation()/nodeMemory)/2;
-        return (float) Math.floor(nodeMemory*weight/service.getMemory());
+        return (float) Math.min(Math.floor(nodeMemory*weight/service.getMemory()), service.getMaxAllocation());
     }
 
 

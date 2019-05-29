@@ -41,11 +41,16 @@ public class Planner
         req = (float) data.getRequests();
         float rt = data.getResponseTime();
         float e = SLA/1000 - rt/1000;
+
         ke = (A-1)/(P_NOM-1)*e;
         float ui = uiOld+(1-P_NOM)*ke;
         float ut = ui+ke;
 
         core = req*(ut-A1_NOM-1000.0f*A2_NOM)/(1000.0f*A3_NOM*(A1_NOM-ut));
+
+        if (e < 0) {
+            core = Math.max(core, service.getMaxAllocation());
+        }
 
         float approxCore = Math.max(Math.abs(core), CORE_MIN);
 

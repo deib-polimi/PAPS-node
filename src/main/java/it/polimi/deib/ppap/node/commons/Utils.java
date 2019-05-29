@@ -1,5 +1,7 @@
 package it.polimi.deib.ppap.node.commons;
 
+import it.polimi.deib.ppap.node.NodeFacade;
+
 import java.io.IOException;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
@@ -23,8 +25,12 @@ public class Utils {
                 e.printStackTrace();
         }
 
+        res.info(NodeFacade.LOG_HEADER);
+
+
         return res;
     }
+
 
     public static NormalDistribution getNormalDistribution(double mean, double std){
         return new NormalDistribution(mean, std);
